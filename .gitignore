@@ -1,0 +1,11 @@
+node_modules
+npm-debug.log
+coverage/
+/public_gen
+/tmp
+
+# locally required config files
+public/css/*.min.css
+
+# Test artifacts
+/dist/test/

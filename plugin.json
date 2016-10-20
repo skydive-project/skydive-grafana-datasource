@@ -1,0 +1,37 @@
+{
+  "name": "Skydive",
+  "id": "skydive",
+  "type": "datasource",
+
+  "staticRoot": ".",
+
+  "partials": {
+    "config": "public/app/plugins/datasource/skydive/partials/config.html"
+  },
+
+  "metrics": true,
+  "annotations": false,
+
+  "info": {
+    "description": "Skydive datasource",
+    "author": {
+      "name": "Skydive",
+      "url": "https://github.com/skydive-project"
+    },
+    "logos": {
+      "small": "src/img/skydive-logo.png",
+      "large": "src/img/skydive-logo.png"
+    },
+    "links": [
+      {"name": "GitHub", "url": "https://github.com/skydive-project/skydive-grafana-datasource"},
+      {"name": "MIT License", "url": "https://github.com/skydive-project/skydive-grafana-datasource/blob/master/LICENSE"}
+    ],
+    "version": "1.2.2",
+    "updated": "2016-05-11"
+  },
+
+  "dependencies": {
+    "grafanaVersion": "3.x.x",
+    "plugins": [ ]
+  }
+}
