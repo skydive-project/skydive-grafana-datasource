@@ -17,7 +17,7 @@ $ ln -s `pwd`/dist /var/lib/grafana/plugins/skydive-grafana-datasource
 
 ## Configuration
 
-![](https://raw.githubusercontent.com/safchain/skydive-grafana-datasource/master/doc/img/configuration.png)
+![](https://raw.githubusercontent.com/skydive-project/skydive-grafana-datasource/master/doc/img/configuration.png)
 
 Address of Skydive Analyzer has to be used as URL. By default listening on
 http://localhost:8082
@@ -27,7 +27,7 @@ Skydive Analyzer.
 
 ## Query editor
 
-![](https://raw.githubusercontent.com/safchain/skydive-grafana-datasource/master/doc/img/query-editor.png)
+![](https://raw.githubusercontent.com/skydive-project/skydive-grafana-datasource/master/doc/img/query-editor.png)
 
 In order to get metrics the Skydive Gremlin query language is used. You just
 need to provide a query that returns Flows. Ex:
