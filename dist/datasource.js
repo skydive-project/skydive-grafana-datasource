@@ -101,10 +101,7 @@ System.register(["lodash", "moment"], function (_export, _context) {
             query = query.replace(/\.Metrics\([^)]*\)/i, '');
 
             // add time context
-            query = query.replace(/^G\./i, 'G.At(' + request.to + ').');
-
-            // add Since predicate to flows
-            query = query.replace(/\.Flows\([^)]*\)/i, '.Flows(Since(' + (request.to - request.from) + '))');
+            query = query.replace(/^G\./i, 'G.At(' + request.to + ',' + (request.to - request.from) + ').');
 
             switch (request.mode) {
               case "Outer":

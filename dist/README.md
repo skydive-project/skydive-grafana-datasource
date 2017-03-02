@@ -30,10 +30,11 @@ Skydive Analyzer.
 ![](https://raw.githubusercontent.com/safchain/skydive-grafana-datasource/master/doc/img/query-editor.png)
 
 In order to get metrics the Skydive Gremlin query language is used. You just
-need to provide a query that is returning Flows().
+need to provide a query that returns Flows. Ex:
 
-The `Dedup` checkbox will add the `Dedup` Gremlin step for you so will
-deduplicate Flows by their TrackingID.
+```console
+G.V().Has('Name', 'br-int').Flows()
+```
 
 Refer to the
 [Skydive Gremlin section](http://skydive-project.github.io/skydive/getting-started/gremlin/)
