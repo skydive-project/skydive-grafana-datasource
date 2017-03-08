@@ -3,10 +3,13 @@ import moment from "moment";
 
 export class SkydiveDatasource {
 
+  /** @ngInject **/
   constructor(instanceSettings, $q, backendSrv, templateSrv) {
+    console.log( instanceSettings);
     this.type = instanceSettings.type;
     this.url = instanceSettings.url;
     this.name = instanceSettings.name;
+    this.version = instanceSettings.jsonData.version;
     this.q = $q;
     this.backendSrv = backendSrv;
     this.templateSrv = templateSrv;
@@ -15,70 +18,95 @@ export class SkydiveDatasource {
   // Called once per panel (graph)
   query(options) {
     var targets = _.filter(options.targets, target => {
-      return !target.hide && target.query && target.query !== 'Gremlin query';
+      return !target.hide && target.gremlin && target.gremlin !== 'Gremlin query';
     });
 
     if (targets.length <= 0) {
       return this.q.when({data: []});
     }
 
-    var requests = _.map(targets, target => {
-      return {
-        query: this.templateSrv.replace(target.query),
-        field: target.metricField,
-        dedup: target.dedup,
-        aggregates: target.aggregates,
-        mode: target.mode,
-        from: options.range.from.format('X'),
-        to: options.range.to.format('X'),
-        refId: target.refId,
-        hide: target.hide
-      };
+    var queries = _.map(targets, target => {
+      return this.targetToQuery(target, options.range.from.format('X'), options.range.to.format('X'));
     });
 
-    var promises =  this.doRequests(requests);
+    var promises =  this.doQueries(queries);
     return this.q.all(promises).then(function(results) {
       return { data: _.flatten(results) };
     });
   }
 
-  doRequests(requests) {
-    return _.map(requests, request => {
-      return this.doRequest(request);
-    });
+  targetToRequest(target, from, to) {
+    return {
+      gremlin: target.gremlin || "",
+      field: target.metricField,
+      dedup: target.dedup,
+      aggregates: target.aggregates,
+      mode: target.mode,
+      from: from,
+      to: to,
+      refId: target.refId,
+      hide: target.hide
+    };
   }
 
-  doRequest(request) {
+  targetToQuery(target, from, to) {
+    return this.requestToQuery(this.targetToRequest(target, from, to));
+  }
+
+  gremlinTimeContext(gremlin, request) {
+    if (this.version == "0.9") {
+      query = query.replace(/^G\./i, 'G.At(' + request.to + ').');
+      query = query.replace(/\.Flows\([^)]*\)/i, '.Flows(Since(' + (request.to-request.from) + '))');
+    } else {
+      gremlin = gremlin.replace(/^G\./i, 'G.At(' + request.to + ',' + (request.to-request.from) + ').');
+    }
+
+    return gremlin;
+  }
+
+  requestToQuery(request) {
     // removing Context/At and Metric from the original query if present
-    var query = request.query.replace(/^G\.At\([^)]*\)/i, 'G');
-    query = request.query.replace(/^G\.Context\([^)]*\)/i, 'G');
-    query = query.replace(/\.Metrics\([^)]*\)/i, '');
+    var gremlin = request.gremlin.replace(/^G\.At\([^)]*\)/i, 'G');
+    gremlin = request.gremlin.replace(/^G\.Context\([^)]*\)/i, 'G');
+    gremlin = gremlin.replace(/\.Metrics\([^)]*\)/i, '');
+    gremlin = gremlin.replace(/\.Aggregates\([^)]*\)/i, '');
+    gremlin = gremlin.replace(/\.Dedup\([^)]*\)/i, '');
 
     // add time context
-    query = query.replace(/^G\./i, 'G.At(' + request.to + ',' + (request.to-request.from) + ').');
+    gremlin = this.gremlinTimeContext(gremlin, request);
 
     switch (request.mode) {
       case "Outer":
-        query += '.Has("ParentUUID", "")';
+        gremlin += '.Has("ParentUUID", "")';
         break;
       case "Inner":
-        query += '.Has("ParentUUID", Ne(""))';
+        gremlin += '.Has("ParentUUID", Ne(""))';
         break;
     }
 
     if (request.dedup != '---') {
-      query += '.Dedup("' + request.dedup + '")';
+      gremlin += '.Dedup("' + request.dedup + '")';
     }
 
-    query += '.Metrics()';
+    gremlin += '.Metrics()';
 
     if (request.aggregates) {
-      query += '.Aggregates()';
+      gremlin += '.Aggregates()';
     }
 
-    console.log(query);
+    return {gremlin: gremlin, request: request};
+  }
 
-    return this.doGremlinQuery(query).then(result => {
+  doQueries(queries) {
+    return _.map(queries, query => {
+      return this.doQuery(query);
+    });
+  }
+
+  doQuery(query) {
+    console.log(query.gremlin);
+
+    return this.doGremlinQuery(query.gremlin).then(result => {
       var data = [];
       if (result.status !== 200) {
         return data;
@@ -91,17 +119,34 @@ export class SkydiveDatasource {
       _.forEach(result.data[0], (metrics, uuid) => {
         var datapoints = _.map(metrics, metric => {
           var value = 0;
-          switch (request.field) {
+          switch (query.request.field) {
             case "Bytes":
-              value = metric.ABBytes + metric.BABytes;
+              // flow or interface metrics ?
+              if (_.has(metric, "ABBytes")) {
+                value = metric.ABBytes + metric.BABytes;
+              } else {
+                value = metric.RxBytes + metric.RxBytes;
+              }
               break;
             case "Packets":
-              value = metric.ABPackets + metric.BAPackets;
+              // flow or interface metrics ?
+              if (_.has(metric, "ABPackets")) {
+                value = metric.ABPackets + metric.BAPackets;
+              } else {
+                value = metric.RxPackets + metric.TxPackets;
+              }
               break;
             default:
-              value = metric[request.field];
+              value = metric[query.request.field];
           }
-          return [value / (metric.Last - metric.Start), moment(metric.Last, 'X').valueOf()];
+          var start = metric.Start;
+          var last = metric.Last;
+
+          if (this.version != "0.9") {
+            start /= 1000;
+            last /= 1000;
+          }
+          return [value / (last - start), moment(last, 'X').valueOf()];
         });
 
         data.push({
@@ -114,12 +159,12 @@ export class SkydiveDatasource {
     });
   }
 
-  doGremlinQuery(query) {
+  doGremlinQuery(gremlin) {
     var options = {
       url: this.url + '/api/topology',
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      data: {'GremlinQuery': query}
+      data: {'GremlinQuery': gremlin}
     };
     return this.backendSrv.datasourceRequest(options);
   }

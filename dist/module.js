@@ -1,9 +1,9 @@
 'use strict';
 
-System.register(['./datasource', './query_ctrl'], function (_export, _context) {
+System.register(['./datasource', './config_ctrl', './query_ctrl'], function (_export, _context) {
   "use strict";
 
-  var SkydiveDatasource, SkydiveDatasourceQueryCtrl, SkydiveConfigCtrl, SkydiveQueryOptionsCtrl;
+  var SkydiveDatasource, SkydiveConfigCtrl, SkydiveDatasourceQueryCtrl, SkydiveQueryOptionsCtrl;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -14,16 +14,12 @@ System.register(['./datasource', './query_ctrl'], function (_export, _context) {
   return {
     setters: [function (_datasource) {
       SkydiveDatasource = _datasource.SkydiveDatasource;
+    }, function (_config_ctrl) {
+      SkydiveConfigCtrl = _config_ctrl.SkydiveConfigCtrl;
     }, function (_query_ctrl) {
       SkydiveDatasourceQueryCtrl = _query_ctrl.SkydiveDatasourceQueryCtrl;
     }],
     execute: function () {
-      _export('ConfigCtrl', SkydiveConfigCtrl = function SkydiveConfigCtrl() {
-        _classCallCheck(this, SkydiveConfigCtrl);
-      });
-
-      SkydiveConfigCtrl.templateUrl = 'partials/config.html';
-
       _export('QueryOptionsCtrl', SkydiveQueryOptionsCtrl = function SkydiveQueryOptionsCtrl() {
         _classCallCheck(this, SkydiveQueryOptionsCtrl);
       });

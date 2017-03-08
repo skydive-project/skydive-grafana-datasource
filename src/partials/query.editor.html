@@ -1,10 +1,10 @@
 <query-editor-row query-ctrl="ctrl" can-collapse="true">
     <div class="gf-form-inline">
-        <div class="gf-form gf-form--grow"><label class="gf-form-label query-keyword width-7">Query</label><input type="text" class="gf-form-input" ng-model="ctrl.target.query" spellcheck="false" placeholder="Gremlin query" ng-blur="ctrl.refresh()"></div>
+        <div class="gf-form gf-form--grow"><label class="gf-form-label query-keyword width-7">Query</label><input type="text" class="gf-form-input" ng-model="ctrl.target.gremlin" spellcheck="false" placeholder="Gremlin query" ng-blur="ctrl.onChangeInternal()"></div>
     </div>
     <div class="gf-form">
-        <label class="gf-form-label query-keyword width-8">Packets</label>
-        <div class="gf-form-select-wrapper">
+        <label class="gf-form-label query-keyword width-8" ng-show="ctrl.flowMetrics">Packets</label>
+        <div class="gf-form-select-wrapper" ng-show="ctrl.flowMetrics">
             <select class="gf-form-input gf-size-auto" ng-model="ctrl.target.mode" ng-options="f.value as f.text for f in ctrl.mode" ng-change="ctrl.onChangeInternal()"></select>
         </div>
         <label class="gf-form-label query-keyword width-8">Field</label>

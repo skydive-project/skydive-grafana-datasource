@@ -1,2 +1,9 @@
-<datasource-http-settings current="ctrl.current">
+<datasource-http-settings current="ctrl.current" suggest-url="http://localhost:8082">
 </datasource-http-settings>
+<h3 class="page-heading">Skydive details</h3>
+<div class="gf-form-group">
+  <div class="gf-form">
+    <span class="gf-form-label width-9">Version</span>
+    <select class="gf-form-input gf-size-auto" ng-model="ctrl.current.jsonData.version" ng-options="f.value as f.text for f in ctrl.versionFields" ng-change="ctrl.versionChanged()"></select>
+  </div>
+</div>

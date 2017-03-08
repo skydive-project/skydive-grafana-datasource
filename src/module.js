@@ -1,8 +1,6 @@
 import {SkydiveDatasource} from './datasource';
+import {SkydiveConfigCtrl} from './config_ctrl';
 import {SkydiveDatasourceQueryCtrl} from './query_ctrl';
-
-class SkydiveConfigCtrl {}
-SkydiveConfigCtrl.templateUrl = 'partials/config.html';
 
 class SkydiveQueryOptionsCtrl {}
 SkydiveQueryOptionsCtrl.templateUrl = 'partials/query.options.html';

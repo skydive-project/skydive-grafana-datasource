@@ -10,7 +10,7 @@ describe('SkydiveDatasource', function() {
         ctx.$q = Q;
         ctx.backendSrv = {};
         ctx.templateSrv = {};
-        ctx.ds = new Datasource({}, ctx.$q, ctx.backendSrv, ctx.templateSrv);
+        ctx.ds = new Datasource({jsonData:{version: "0.10"}}, ctx.$q, ctx.backendSrv, ctx.templateSrv);
 
     });
 
@@ -47,7 +47,7 @@ describe('SkydiveDatasource', function() {
         var targets = [{
             "dedup": "NodeTID",
             "metricField": "Bytes",
-            "query": "G.Flows()",
+            "gremlin": "G.Flows()",
             "aggregates": false,
             "mode": "Outer",
         }];

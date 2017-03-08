@@ -61,6 +61,7 @@ System.register(['app/plugins/sdk', './css/query-editor.css!'], function (_expor
       _export('SkydiveDatasourceQueryCtrl', SkydiveDatasourceQueryCtrl = function (_QueryCtrl) {
         _inherits(SkydiveDatasourceQueryCtrl, _QueryCtrl);
 
+        /** @ngInject */
         function SkydiveDatasourceQueryCtrl($scope, $injector, uiSegmentSrv) {
           _classCallCheck(this, SkydiveDatasourceQueryCtrl);
 
@@ -69,30 +70,96 @@ System.register(['app/plugins/sdk', './css/query-editor.css!'], function (_expor
           _this.scope = $scope;
           _this.uiSegmentSrv = uiSegmentSrv;
 
-          _this.target.metricField = "Bytes";
+          // set visibility of some field depending on the type of metrics returned
+          _this.flowMetrics = false;
+
+          _this.target.metricField = _this.target.metricField || "Bytes";
 
           // TODO(safchain) request datasource to get metrics fields dynamically
-          _this.metricFields = [{ text: "Bytes", value: "Bytes" }, { text: "Packets", value: "Packets" }, { text: "ABBytes", value: "ABBytes" }, { text: "BABytes", value: "BABytes" }, { text: "ABPackets", value: "ABPackets" }, { text: "BAPackets", value: "BAPackets" }];
+          _this.metricFields = [];
 
-          _this.target.dedup = "---";
-          _this.dedup = [{ text: "---", value: "---" }, { text: "LayersPath", value: "LayersPath" }, { text: "Application", value: "Application" }, { text: "TrackingID", value: "TrackingID" }, { text: "ParentUUID", value: "ParentUUID" }, { text: "NodeTID", value: "NodeTID" }, { text: "ANodeTID", value: "ANodeTID" }, { text: "BNodeTID", value: "BNodeTID" }];
+          _this.dedupFlow = [{ text: "---", value: "---" }, { text: "LayersPath", value: "LayersPath" }, { text: "Application", value: "Application" }, { text: "TrackingID", value: "TrackingID" }, { text: "ParentUUID", value: "ParentUUID" }, { text: "NodeTID", value: "NodeTID" }, { text: "ANodeTID", value: "ANodeTID" }, { text: "BNodeTID", value: "BNodeTID" }];
 
-          _this.target.aggregates = true;
+          _this.dedupIntf = [{ text: "---", value: "---" }, { text: "ID", value: "ID" }, { text: "TID", value: "TID" }, { text: "Type", value: "Type" }];
 
-          _this.target.mode = 'All';
+          _this.target.dedup = _this.target.dedup || "---";
+          _this.dedup = _this.dedupFlow;
+
+          _this.target.aggregates = _this.target.aggregates || false;
+
+          _this.target.mode = _this.target.mode || "All";
           _this.mode = [{ text: "All", value: "All" }, { text: "Outer only", value: "Outer" }, { text: "Inner only", value: "Inner" }];
+
+          _this.prevGremlin = "";
+          _this.prevMetricField = _this.metricField;
+          _this.prevDedup = _this.dedup;
+          _this.prevAggregates = _this.aggregates;
+          _this.prevMode = _this.mode;
+
+          _this.onChangeInternal();
           return _this;
         }
 
         _createClass(SkydiveDatasourceQueryCtrl, [{
           key: 'getCollapsedText',
           value: function getCollapsedText() {
-            return this.target.query;
+            return this.target.gremlin;
           }
         }, {
           key: 'onChangeInternal',
           value: function onChangeInternal() {
-            this.panelCtrl.refresh();
+            var _this2 = this;
+
+            var range = this.panelCtrl.range;
+            var query = this.datasource.targetToQuery(this.target, 1, 2);
+
+            if (this.prevGremlin != query.gremlin || this.prevMetricField != this.target.metricField || this.prevAggregates != this.target.aggregates || this.prevMode != this.target.mode) {
+
+              // flow metrics ?
+              var flowMetrics = false;
+
+              var q = this.datasource.targetToQuery(this.target, range.from.format('X'), range.to.format('X'));
+              this.datasource.doGremlinQuery(q.gremlin).then(function (result) {
+                if (result.status === 200 && result.data.length > 0) {
+                  _this2.metricFields = [{ text: "Bytes", value: "Bytes" }, { text: "Packets", value: "Packets" }];
+                  _this2.prevMetricField = _this2.target.metricField;
+
+                  _.forEach(result.data[0], function (metrics, uuid) {
+                    _.forEach(metrics, function (metric) {
+                      _.forOwn(metric, function (value, key) {
+                        if (key == "ABBytes") {
+                          flowMetrics = true;
+                        }
+                        _this2.metricFields.push({ text: key, value: key });
+                      });
+
+                      return false;
+                    });
+                    return false;
+                  });
+                }
+
+                if (flowMetrics) {
+                  _this2.dedup = _this2.dedupFlow;
+                } else {
+                  _this2.dedup = _this2.dedupIntf;
+                }
+                if (_this2.flowMetrics != flowMetrics) {
+                  _this2.flowMetrics = flowMetrics;
+
+                  // reset the metricField as we changed of type of metrics
+                  _this2.target.metricField = "Bytes";
+                }
+
+                _this2.prevGremlin = query.gremlin;
+                _this2.prevMetricField = _this2.target.metricField;
+                _this2.prevDedup = _this2.target.dedup;
+                _this2.prevAggregates = _this2.target.aggregates;
+                _this2.prevMode = _this2.target.mode;
+
+                _this2.panelCtrl.refresh();
+              });
+            }
           }
         }]);
 

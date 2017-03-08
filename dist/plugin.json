@@ -5,10 +5,6 @@
 
   "staticRoot": ".",
 
-  "partials": {
-    "config": "public/app/plugins/datasource/skydive/partials/config.html"
-  },
-
   "metrics": true,
   "annotations": false,
 
@@ -26,8 +22,8 @@
       {"name": "GitHub", "url": "https://github.com/skydive-project/skydive-grafana-datasource"},
       {"name": "MIT License", "url": "https://github.com/skydive-project/skydive-grafana-datasource/blob/master/LICENSE"}
     ],
-    "version": "1.2.2",
-    "updated": "2016-05-11"
+    "version": "1.0.0",
+    "updated": "2017-09-03"
   },
 
   "dependencies": {
