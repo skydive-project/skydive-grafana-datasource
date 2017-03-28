@@ -1,4 +1,6 @@
 nguage: node_js
 node_js:
     - "0.10"
-script: ./node_modules/grunt-cli/bin/grunt
+before_script:
+    - npm install
+script: ./node_modules/.bin/grunt
