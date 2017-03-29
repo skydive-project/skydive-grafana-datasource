@@ -111,6 +111,7 @@ System.register(['app/plugins/sdk', './css/query-editor.css!'], function (_expor
             var _this2 = this;
 
             var range = this.panelCtrl.range;
+
             var query = this.datasource.targetToQuery(this.target, 1, 2);
 
             if (this.prevGremlin != query.gremlin || this.prevMetricField != this.target.metricField || this.prevAggregates != this.target.aggregates || this.prevMode != this.target.mode) {
@@ -118,7 +119,11 @@ System.register(['app/plugins/sdk', './css/query-editor.css!'], function (_expor
               // flow metrics ?
               var flowMetrics = false;
 
-              var q = this.datasource.targetToQuery(this.target, range.from.format('X'), range.to.format('X'));
+              var target = {
+                gremlin: this.target.gremlin
+              };
+
+              var q = this.datasource.targetToQuery(target, range.from.format('X'), range.to.format('X'));
               this.datasource.doGremlinQuery(q.gremlin).then(function (result) {
                 if (result.status === 200 && result.data.length > 0) {
                   _this2.metricFields = [{ text: "Bytes", value: "Bytes" }, { text: "Packets", value: "Packets" }];

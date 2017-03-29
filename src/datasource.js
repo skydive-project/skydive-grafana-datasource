@@ -55,8 +55,8 @@ export class SkydiveDatasource {
 
   gremlinTimeContext(gremlin, request) {
     if (this.version == "0.9") {
-      query = query.replace(/^G\./i, 'G.At(' + request.to + ').');
-      query = query.replace(/\.Flows\([^)]*\)/i, '.Flows(Since(' + (request.to-request.from) + '))');
+      gremlin = gremlin.replace(/^G\./i, 'G.At(' + request.to + ').');
+      gremlin = gremlin.replace(/\.Flows\([^)]*\)/i, '.Flows(Since(' + (request.to-request.from) + '))');
     } else {
       gremlin = gremlin.replace(/^G\./i, 'G.At(' + request.to + ',' + (request.to-request.from) + ').');
     }
