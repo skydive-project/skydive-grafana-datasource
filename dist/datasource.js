@@ -81,6 +81,7 @@ System.register(["lodash", "moment"], function (_export, _context) {
           key: "targetToRequest",
           value: function targetToRequest(target, from, to) {
             return {
+              title: target.title || "",
               gremlin: target.gremlin || "",
               field: target.metricField,
               dedup: target.dedup,
@@ -131,7 +132,7 @@ System.register(["lodash", "moment"], function (_export, _context) {
                 break;
             }
 
-            if (request.dedup != '---') {
+            if (request.dedup && request.dedup != '---') {
               gremlin += '.Dedup("' + request.dedup + '")';
             }
 
@@ -203,7 +204,7 @@ System.register(["lodash", "moment"], function (_export, _context) {
                 });
 
                 data.push({
-                  target: uuid,
+                  target: query.request.title || uuid,
                   datapoints: _.toArray(datapoints).reverse()
                 });
               });

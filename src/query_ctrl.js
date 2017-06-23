@@ -48,6 +48,7 @@ export class SkydiveDatasourceQueryCtrl extends QueryCtrl {
       {text: "Inner only", value: "Inner"}
     ];
 
+    this.prevTitle = "";
     this.prevGremlin = "";
     this.prevMetricField = this.metricField;
     this.prevDedup = this.dedup;
@@ -67,7 +68,8 @@ export class SkydiveDatasourceQueryCtrl extends QueryCtrl {
     var query = this.datasource.targetToQuery(this.target, 1, 2);
 
     if (this.prevGremlin != query.gremlin || this.prevMetricField != this.target.metricField ||
-        this.prevAggregates != this.target.aggregates || this.prevMode != this.target.mode) {
+        this.prevAggregates != this.target.aggregates || this.prevMode != this.target.mode ||
+        this.prevTitle != this.target.title) {
 
       // flow metrics ?
       var flowMetrics = false;
@@ -112,6 +114,7 @@ export class SkydiveDatasourceQueryCtrl extends QueryCtrl {
           this.target.metricField = "Bytes";
         }
 
+        this.prevTitle = this.target.title;
         this.prevGremlin = query.gremlin;
         this.prevMetricField = this.target.metricField;
         this.prevDedup = this.target.dedup;

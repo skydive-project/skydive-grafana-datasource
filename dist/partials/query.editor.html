@@ -3,7 +3,11 @@
         <div class="gf-form gf-form--grow"><label class="gf-form-label query-keyword width-7">Query</label><input type="text" class="gf-form-input" ng-model="ctrl.target.gremlin" spellcheck="false" placeholder="Gremlin query" ng-blur="ctrl.onChangeInternal()"></div>
     </div>
     <div class="gf-form">
-        <label class="gf-form-label query-keyword width-8" ng-show="ctrl.flowMetrics">Packets</label>
+        <label class="gf-form-label query-keyword width-8">Title</label>
+        <div class="gf-form-input-wrapper">
+            <input type="text" class="gf-form-input gf-size-auto" ng-model="ctrl.target.title" ng-blur="ctrl.onChangeInternal()">
+        </div>
+         <label class="gf-form-label query-keyword width-8" ng-show="ctrl.flowMetrics">Packets</label>
         <div class="gf-form-select-wrapper" ng-show="ctrl.flowMetrics">
             <select class="gf-form-input gf-size-auto" ng-model="ctrl.target.mode" ng-options="f.value as f.text for f in ctrl.mode" ng-change="ctrl.onChangeInternal()"></select>
         </div>

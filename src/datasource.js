@@ -37,6 +37,7 @@ export class SkydiveDatasource {
 
   targetToRequest(target, from, to) {
     return {
+      title: target.title || "",
       gremlin: target.gremlin || "",
       field: target.metricField,
       dedup: target.dedup,
@@ -84,7 +85,7 @@ export class SkydiveDatasource {
         break;
     }
 
-    if (request.dedup != '---') {
+    if (request.dedup && request.dedup != '---') {
       gremlin += '.Dedup("' + request.dedup + '")';
     }
 
@@ -150,7 +151,7 @@ export class SkydiveDatasource {
         });
 
         data.push({
-          target: uuid,
+          target: query.request.title || uuid,
           datapoints: _.toArray(datapoints).reverse()
         });
       });
