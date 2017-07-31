@@ -90,6 +90,7 @@ System.register(['app/plugins/sdk', './css/query-editor.css!'], function (_expor
           _this.target.mode = _this.target.mode || "All";
           _this.mode = [{ text: "All", value: "All" }, { text: "Outer only", value: "Outer" }, { text: "Inner only", value: "Inner" }];
 
+          _this.prevWorked = false;
           _this.prevTitle = "";
           _this.prevGremlin = "";
           _this.prevMetricField = _this.metricField;
@@ -115,7 +116,9 @@ System.register(['app/plugins/sdk', './css/query-editor.css!'], function (_expor
 
             var query = this.datasource.targetToQuery(this.target, 1, 2);
 
-            if (this.prevGremlin != query.gremlin || this.prevMetricField != this.target.metricField || this.prevAggregates != this.target.aggregates || this.prevMode != this.target.mode || this.prevTitle != this.target.title) {
+            if (!this.prevWorked || this.prevGremlin != query.gremlin || this.prevMetricField != this.target.metricField || this.prevAggregates != this.target.aggregates || this.prevMode != this.target.mode || this.prevTitle != this.target.title) {
+
+              this.prevWorked = false;
 
               // flow metrics ?
               var flowMetrics = false;
@@ -127,6 +130,8 @@ System.register(['app/plugins/sdk', './css/query-editor.css!'], function (_expor
               var q = this.datasource.targetToQuery(target, range.from.format('X'), range.to.format('X'));
               this.datasource.doGremlinQuery(q.gremlin).then(function (result) {
                 if (result.status === 200 && result.data.length > 0) {
+                  _this2.prevWorked = true;
+
                   _this2.metricFields = [{ text: "Bytes", value: "Bytes" }, { text: "Packets", value: "Packets" }];
                   _this2.prevMetricField = _this2.target.metricField;
 

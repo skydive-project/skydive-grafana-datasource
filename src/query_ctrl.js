@@ -48,6 +48,7 @@ export class SkydiveDatasourceQueryCtrl extends QueryCtrl {
       {text: "Inner only", value: "Inner"}
     ];
 
+    this.prevWorked = false;
     this.prevTitle = "";
     this.prevGremlin = "";
     this.prevMetricField = this.metricField;
@@ -67,9 +68,11 @@ export class SkydiveDatasourceQueryCtrl extends QueryCtrl {
 
     var query = this.datasource.targetToQuery(this.target, 1, 2);
 
-    if (this.prevGremlin != query.gremlin || this.prevMetricField != this.target.metricField ||
+    if (!this.prevWorked || this.prevGremlin != query.gremlin || this.prevMetricField != this.target.metricField ||
         this.prevAggregates != this.target.aggregates || this.prevMode != this.target.mode ||
         this.prevTitle != this.target.title) {
+
+      this.prevWorked = false;
 
       // flow metrics ?
       var flowMetrics = false;
@@ -81,6 +84,8 @@ export class SkydiveDatasourceQueryCtrl extends QueryCtrl {
       var q = this.datasource.targetToQuery(target, range.from.format('X'), range.to.format('X'));
       this.datasource.doGremlinQuery(q.gremlin).then(result => {
         if (result.status === 200 && result.data.length > 0) {
+          this.prevWorked = true;
+
           this.metricFields = [
             {text: "Bytes", value: "Bytes"},
             {text: "Packets", value: "Packets"},
