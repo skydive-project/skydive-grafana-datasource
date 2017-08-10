@@ -1,7 +1,7 @@
 {
-  "name": "skydive-grafana-datasource",
+  "name": "skydive-datasource",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -12,7 +12,7 @@
     "url": "git+https://github.com/skydive-project/skydive-grafana-datasource.git"
   },
   "author": "",
-  "license": "ISC",
+  "license": "Apache 2.0",
   "bugs": {
     "url": "https://github.com/skydive-project/skydive-grafana-datasource/issues"
   },
