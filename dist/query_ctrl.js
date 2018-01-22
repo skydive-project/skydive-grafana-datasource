@@ -121,7 +121,7 @@ System.register(['app/plugins/sdk', './css/query-editor.css!'], function (_expor
               this.prevWorked = false;
 
               // flow metrics ?
-              var flowMetrics = false;
+              var flowMetrics = this.flowMetrics;
 
               var target = {
                 gremlin: this.target.gremlin
@@ -138,7 +138,7 @@ System.register(['app/plugins/sdk', './css/query-editor.css!'], function (_expor
                   _.forEach(result.data[0], function (metrics, uuid) {
                     _.forEach(metrics, function (metric) {
                       _.forOwn(metric, function (value, key) {
-                        if (key == "ABBytes") {
+                        if (key === "ABBytes" || key === "BABytes") {
                           flowMetrics = true;
                         }
                         _this2.metricFields.push({ text: key, value: key });

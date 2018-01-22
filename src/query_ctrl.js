@@ -75,7 +75,7 @@ export class SkydiveDatasourceQueryCtrl extends QueryCtrl {
       this.prevWorked = false;
 
       // flow metrics ?
-      var flowMetrics = false;
+      var flowMetrics = this.flowMetrics;
 
       var target = {
         gremlin: this.target.gremlin
@@ -95,7 +95,7 @@ export class SkydiveDatasourceQueryCtrl extends QueryCtrl {
           _.forEach(result.data[0], (metrics, uuid) => {
             _.forEach(metrics, metric => {
               _.forOwn(metric, (value, key) => {
-                if (key == "ABBytes") {
+                if (key === "ABBytes" || key === "BABytes") {
                   flowMetrics = true;
                 }
                 this.metricFields.push({text: key, value: key});
