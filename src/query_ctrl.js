@@ -11,12 +11,48 @@ export class SkydiveDatasourceQueryCtrl extends QueryCtrl {
     this.uiSegmentSrv = uiSegmentSrv;
 
     // set visibility of some field depending on the type of metrics returned
-    this.flowMetrics = false;
+    this.metricType = 'interface';
 
     this.target.metricField = this.target.metricField || "Bytes";
 
-    // TODO(safchain) request datasource to get metrics fields dynamically
     this.metricFields = [];
+    this.metricTypeFields = {
+      "interface": [
+        'Bytes',
+        'Packets',
+        'Collisions',
+        'Multicast',
+        'RxBytes',
+        'RxCompressed',
+        'RxCrcErrors',
+        'RxDropped',
+        'RxErrors',
+        'RxFifoErrors',
+        'RxFrameErrors',
+        'RxLengthErrors',
+        'RxMissedErrors',
+        'RxOverErrors',
+        'RxPackets',
+        'TxAbortedErrors',
+        'TxBytes',
+        'TxCarrierErrors',
+        'TxCompressed',
+        'TxDropped',
+        'TxErrors',
+        'TxFifoErrors',
+        'TxHeartbeatErrors',
+        'TxPackets',
+        'TxWindowErrors'
+      ],
+      "flow": [
+        'Bytes',
+        'Packets',
+        'ABPackets',
+        'ABBytes',
+        'BAPackets',
+        'BABytes'
+      ]
+    };
 
     this.dedupFlow = [
       {text: "---", value: "---"},
@@ -68,14 +104,14 @@ export class SkydiveDatasourceQueryCtrl extends QueryCtrl {
 
     var query = this.datasource.targetToQuery(this.target, 1, 2);
 
-    if (!this.prevWorked || this.prevGremlin != query.gremlin || this.prevMetricField != this.target.metricField ||
+    if (!this.prevWorked || this.prevGremlin !== query.gremlin || this.prevMetricField != this.target.metricField ||
         this.prevAggregates != this.target.aggregates || this.prevMode != this.target.mode ||
         this.prevTitle != this.target.title) {
 
       this.prevWorked = false;
 
       // flow metrics ?
-      var flowMetrics = this.flowMetrics;
+      var metricType = this.metricType;
 
       var target = {
         gremlin: this.target.gremlin
@@ -86,19 +122,19 @@ export class SkydiveDatasourceQueryCtrl extends QueryCtrl {
         if (result.status === 200 && result.data.length > 0) {
           this.prevWorked = true;
 
-          this.metricFields = [
-            {text: "Bytes", value: "Bytes"},
-            {text: "Packets", value: "Packets"},
-          ];
+          this.metricFields = [];
           this.prevMetricField = this.target.metricField;
 
           _.forEach(result.data[0], (metrics, uuid) => {
             _.forEach(metrics, metric => {
               _.forOwn(metric, (value, key) => {
                 if (key === "ABBytes" || key === "BABytes") {
-                  flowMetrics = true;
+                  metricType = "flow";
+                  return false;
+                } else if (key === "RxPackets" || key === "TxPackets") {
+                  metricType = "interface";
+                  return false;
                 }
-                this.metricFields.push({text: key, value: key});
               });
 
               return false;
@@ -107,13 +143,17 @@ export class SkydiveDatasourceQueryCtrl extends QueryCtrl {
           });
         }
 
-        if (flowMetrics) {
+        for (let k of this.metricTypeFields[metricType]) {
+          this.metricFields.push({text: k, value: k});
+        }
+
+        if (metricType === "flow") {
           this.dedup = this.dedupFlow;
         } else {
           this.dedup = this.dedupIntf;
         }
-        if (this.flowMetrics != flowMetrics) {
-          this.flowMetrics = flowMetrics;
+        if (this.metricType != metricType) {
+          this.metricType = metricType;
 
           // reset the metricField as we changed of type of metrics
           this.target.metricField = "Bytes";

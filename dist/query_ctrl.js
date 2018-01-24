@@ -71,12 +71,15 @@ System.register(['app/plugins/sdk', './css/query-editor.css!'], function (_expor
           _this.uiSegmentSrv = uiSegmentSrv;
 
           // set visibility of some field depending on the type of metrics returned
-          _this.flowMetrics = false;
+          _this.metricType = 'interface';
 
           _this.target.metricField = _this.target.metricField || "Bytes";
 
-          // TODO(safchain) request datasource to get metrics fields dynamically
           _this.metricFields = [];
+          _this.metricTypeFields = {
+            "interface": ['Bytes', 'Packets', 'Collisions', 'Multicast', 'RxBytes', 'RxCompressed', 'RxCrcErrors', 'RxDropped', 'RxErrors', 'RxFifoErrors', 'RxFrameErrors', 'RxLengthErrors', 'RxMissedErrors', 'RxOverErrors', 'RxPackets', 'TxAbortedErrors', 'TxBytes', 'TxCarrierErrors', 'TxCompressed', 'TxDropped', 'TxErrors', 'TxFifoErrors', 'TxHeartbeatErrors', 'TxPackets', 'TxWindowErrors'],
+            "flow": ['Bytes', 'Packets', 'ABPackets', 'ABBytes', 'BAPackets', 'BABytes']
+          };
 
           _this.dedupFlow = [{ text: "---", value: "---" }, { text: "LayersPath", value: "LayersPath" }, { text: "Application", value: "Application" }, { text: "TrackingID", value: "TrackingID" }, { text: "ParentUUID", value: "ParentUUID" }, { text: "NodeTID", value: "NodeTID" }, { text: "ANodeTID", value: "ANodeTID" }, { text: "BNodeTID", value: "BNodeTID" }];
 
@@ -116,12 +119,12 @@ System.register(['app/plugins/sdk', './css/query-editor.css!'], function (_expor
 
             var query = this.datasource.targetToQuery(this.target, 1, 2);
 
-            if (!this.prevWorked || this.prevGremlin != query.gremlin || this.prevMetricField != this.target.metricField || this.prevAggregates != this.target.aggregates || this.prevMode != this.target.mode || this.prevTitle != this.target.title) {
+            if (!this.prevWorked || this.prevGremlin !== query.gremlin || this.prevMetricField != this.target.metricField || this.prevAggregates != this.target.aggregates || this.prevMode != this.target.mode || this.prevTitle != this.target.title) {
 
               this.prevWorked = false;
 
               // flow metrics ?
-              var flowMetrics = this.flowMetrics;
+              var metricType = this.metricType;
 
               var target = {
                 gremlin: this.target.gremlin
@@ -132,16 +135,19 @@ System.register(['app/plugins/sdk', './css/query-editor.css!'], function (_expor
                 if (result.status === 200 && result.data.length > 0) {
                   _this2.prevWorked = true;
 
-                  _this2.metricFields = [{ text: "Bytes", value: "Bytes" }, { text: "Packets", value: "Packets" }];
+                  _this2.metricFields = [];
                   _this2.prevMetricField = _this2.target.metricField;
 
                   _.forEach(result.data[0], function (metrics, uuid) {
                     _.forEach(metrics, function (metric) {
                       _.forOwn(metric, function (value, key) {
                         if (key === "ABBytes" || key === "BABytes") {
-                          flowMetrics = true;
+                          metricType = "flow";
+                          return false;
+                        } else if (key === "RxPackets" || key === "TxPackets") {
+                          metricType = "interface";
+                          return false;
                         }
-                        _this2.metricFields.push({ text: key, value: key });
                       });
 
                       return false;
@@ -150,13 +156,38 @@ System.register(['app/plugins/sdk', './css/query-editor.css!'], function (_expor
                   });
                 }
 
-                if (flowMetrics) {
+                var _iteratorNormalCompletion = true;
+                var _didIteratorError = false;
+                var _iteratorError = undefined;
+
+                try {
+                  for (var _iterator = _this2.metricTypeFields[metricType][Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var k = _step.value;
+
+                    _this2.metricFields.push({ text: k, value: k });
+                  }
+                } catch (err) {
+                  _didIteratorError = true;
+                  _iteratorError = err;
+                } finally {
+                  try {
+                    if (!_iteratorNormalCompletion && _iterator.return) {
+                      _iterator.return();
+                    }
+                  } finally {
+                    if (_didIteratorError) {
+                      throw _iteratorError;
+                    }
+                  }
+                }
+
+                if (metricType === "flow") {
                   _this2.dedup = _this2.dedupFlow;
                 } else {
                   _this2.dedup = _this2.dedupIntf;
                 }
-                if (_this2.flowMetrics != flowMetrics) {
-                  _this2.flowMetrics = flowMetrics;
+                if (_this2.metricType != metricType) {
+                  _this2.metricType = metricType;
 
                   // reset the metricField as we changed of type of metrics
                   _this2.target.metricField = "Bytes";
