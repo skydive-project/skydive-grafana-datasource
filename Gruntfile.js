@@ -2,7 +2,6 @@ module.exports = function(grunt) {
 
   require('load-grunt-tasks')(grunt);
 
-  grunt.loadNpmTasks('grunt-execute');
   grunt.loadNpmTasks('grunt-contrib-clean');
 
   grunt.initConfig({
@@ -40,11 +39,11 @@ module.exports = function(grunt) {
     babel: {
       options: {
         sourceMap: true,
-        presets:  ['es2015']
+        presets:  ['@babel/env']
       },
       dist: {
         options: {
-          plugins: ['transform-es2015-modules-systemjs', 'transform-es2015-for-of']
+          plugins: ['@babel/plugin-transform-modules-systemjs', '@babel/plugin-transform-for-of']
         },
         files: [{
           cwd: 'src',
@@ -77,6 +76,7 @@ module.exports = function(grunt) {
     mochaTest: {
       test: {
         options: {
+          timeout: false,
           reporter: 'spec'
         },
         src: ['dist/test/spec/test-main.js', 'dist/test/spec/*_spec.js']

@@ -3,13 +3,13 @@
 System.register(["lodash", "moment"], function (_export, _context) {
   "use strict";
 
-  var _, moment, _createClass, SkydiveDatasource;
+  var _, moment, SkydiveDatasource;
 
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+  function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
   return {
     setters: [function (_lodash) {
@@ -18,26 +18,9 @@ System.register(["lodash", "moment"], function (_export, _context) {
       moment = _moment.default;
     }],
     execute: function () {
-      _createClass = function () {
-        function defineProperties(target, props) {
-          for (var i = 0; i < props.length; i++) {
-            var descriptor = props[i];
-            descriptor.enumerable = descriptor.enumerable || false;
-            descriptor.configurable = true;
-            if ("value" in descriptor) descriptor.writable = true;
-            Object.defineProperty(target, descriptor.key, descriptor);
-          }
-        }
-
-        return function (Constructor, protoProps, staticProps) {
-          if (protoProps) defineProperties(Constructor.prototype, protoProps);
-          if (staticProps) defineProperties(Constructor, staticProps);
-          return Constructor;
-        };
-      }();
-
-      _export("SkydiveDatasource", SkydiveDatasource = function () {
-
+      _export("SkydiveDatasource", SkydiveDatasource =
+      /*#__PURE__*/
+      function () {
         /** @ngInject **/
         function SkydiveDatasource(instanceSettings, $q, backendSrv, templateSrv) {
           _classCallCheck(this, SkydiveDatasource);
@@ -50,9 +33,7 @@ System.register(["lodash", "moment"], function (_export, _context) {
           this.q = $q;
           this.backendSrv = backendSrv;
           this.templateSrv = templateSrv;
-        }
-
-        // Called once per panel (graph)
+        } // Called once per panel (graph)
 
 
         _createClass(SkydiveDatasource, [{
@@ -65,7 +46,9 @@ System.register(["lodash", "moment"], function (_export, _context) {
             });
 
             if (targets.length <= 0) {
-              return this.q.when({ data: [] });
+              return this.q.when({
+                data: []
+              });
             }
 
             var queries = _.map(targets, function (target) {
@@ -74,7 +57,9 @@ System.register(["lodash", "moment"], function (_export, _context) {
 
             var promises = this.doQueries(queries);
             return this.q.all(promises).then(function (results) {
-              return { data: _.flatten(results) };
+              return {
+                data: _.flatten(results)
+              };
             });
           }
         }, {
@@ -118,15 +103,15 @@ System.register(["lodash", "moment"], function (_export, _context) {
             gremlin = request.gremlin.replace(/^G\.Context\([^)]*\)/i, 'G');
             gremlin = gremlin.replace(/\.Metrics\([^)]*\)/i, '');
             gremlin = gremlin.replace(/\.Aggregates\([^)]*\)/i, '');
-            gremlin = gremlin.replace(/\.Dedup\([^)]*\)/i, '');
+            gremlin = gremlin.replace(/\.Dedup\([^)]*\)/i, ''); // add time context
 
-            // add time context
             gremlin = this.gremlinTimeContext(gremlin, request);
 
             switch (request.mode) {
               case "Outer":
                 gremlin += '.Has("ParentUUID", "")';
                 break;
+
               case "Inner":
                 gremlin += '.Has("ParentUUID", Ne(""))';
                 break;
@@ -142,7 +127,10 @@ System.register(["lodash", "moment"], function (_export, _context) {
               gremlin += '.Aggregates()';
             }
 
-            return { gremlin: gremlin, request: request };
+            return {
+              gremlin: gremlin,
+              request: request
+            };
           }
         }, {
           key: "doQueries",
@@ -159,9 +147,9 @@ System.register(["lodash", "moment"], function (_export, _context) {
             var _this3 = this;
 
             console.log(query.gremlin);
-
             return this.doGremlinQuery(query.gremlin).then(function (result) {
               var data = [];
+
               if (result.status !== 200) {
                 return data;
               }
@@ -173,6 +161,7 @@ System.register(["lodash", "moment"], function (_export, _context) {
               _.forEach(result.data[0], function (metrics, uuid) {
                 var datapoints = _.map(metrics, function (metric) {
                   var value = 0;
+
                   switch (query.request.field) {
                     case "Bytes":
                       // flow or interface metrics ?
@@ -181,7 +170,9 @@ System.register(["lodash", "moment"], function (_export, _context) {
                       } else {
                         value = metric.RxBytes + metric.RxBytes;
                       }
+
                       break;
+
                     case "Packets":
                       // flow or interface metrics ?
                       if (_.has(metric, "ABPackets")) {
@@ -189,10 +180,13 @@ System.register(["lodash", "moment"], function (_export, _context) {
                       } else {
                         value = metric.RxPackets + metric.TxPackets;
                       }
+
                       break;
+
                     default:
                       value = metric[query.request.field];
                   }
+
                   var start = metric.Start;
                   var last = metric.Last;
 
@@ -200,6 +194,7 @@ System.register(["lodash", "moment"], function (_export, _context) {
                     start /= 1000;
                     last /= 1000;
                   }
+
                   return [value / (last - start), moment(last, 'X').valueOf()];
                 });
 
@@ -218,11 +213,17 @@ System.register(["lodash", "moment"], function (_export, _context) {
             var options = {
               url: this.url + '/api/topology',
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              data: { 'GremlinQuery': gremlin }
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              data: {
+                'GremlinQuery': gremlin
+              }
             };
             return this.backendSrv.datasourceRequest(options);
-          }
+          } // Required
+          // Used for testing datasource in datasource configuration pange
+
         }, {
           key: "testDatasource",
           value: function testDatasource() {
@@ -231,7 +232,11 @@ System.register(["lodash", "moment"], function (_export, _context) {
               method: 'GET'
             }).then(function (response) {
               if (response.status === 200) {
-                return { status: "success", message: "Data source is working", title: "Success" };
+                return {
+                  status: "success",
+                  message: "Data source is working",
+                  title: "Success"
+                };
               }
             });
           }
@@ -239,8 +244,6 @@ System.register(["lodash", "moment"], function (_export, _context) {
 
         return SkydiveDatasource;
       }());
-
-      _export("SkydiveDatasource", SkydiveDatasource);
     }
   };
 });

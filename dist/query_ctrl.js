@@ -1,98 +1,107 @@
-'use strict';
+"use strict";
 
-System.register(['app/plugins/sdk', './css/query-editor.css!'], function (_export, _context) {
+System.register(["app/plugins/sdk", "./css/query-editor.css!"], function (_export, _context) {
   "use strict";
 
-  var QueryCtrl, _createClass, SkydiveDatasourceQueryCtrl;
+  var QueryCtrl, SkydiveDatasourceQueryCtrl;
 
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
+  function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
-  function _possibleConstructorReturn(self, call) {
-    if (!self) {
-      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-    }
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-    return call && (typeof call === "object" || typeof call === "function") ? call : self;
-  }
+  function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-  function _inherits(subClass, superClass) {
-    if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-    }
+  function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-    subClass.prototype = Object.create(superClass && superClass.prototype, {
-      constructor: {
-        value: subClass,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }
+  function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+  function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+  function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+  function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
   return {
     setters: [function (_appPluginsSdk) {
       QueryCtrl = _appPluginsSdk.QueryCtrl;
     }, function (_cssQueryEditorCss) {}],
     execute: function () {
-      _createClass = function () {
-        function defineProperties(target, props) {
-          for (var i = 0; i < props.length; i++) {
-            var descriptor = props[i];
-            descriptor.enumerable = descriptor.enumerable || false;
-            descriptor.configurable = true;
-            if ("value" in descriptor) descriptor.writable = true;
-            Object.defineProperty(target, descriptor.key, descriptor);
-          }
-        }
-
-        return function (Constructor, protoProps, staticProps) {
-          if (protoProps) defineProperties(Constructor.prototype, protoProps);
-          if (staticProps) defineProperties(Constructor, staticProps);
-          return Constructor;
-        };
-      }();
-
-      _export('SkydiveDatasourceQueryCtrl', SkydiveDatasourceQueryCtrl = function (_QueryCtrl) {
+      _export("SkydiveDatasourceQueryCtrl", SkydiveDatasourceQueryCtrl =
+      /*#__PURE__*/
+      function (_QueryCtrl) {
         _inherits(SkydiveDatasourceQueryCtrl, _QueryCtrl);
 
         /** @ngInject */
         function SkydiveDatasourceQueryCtrl($scope, $injector, uiSegmentSrv) {
+          var _this;
+
           _classCallCheck(this, SkydiveDatasourceQueryCtrl);
 
-          var _this = _possibleConstructorReturn(this, (SkydiveDatasourceQueryCtrl.__proto__ || Object.getPrototypeOf(SkydiveDatasourceQueryCtrl)).call(this, $scope, $injector));
-
+          _this = _possibleConstructorReturn(this, _getPrototypeOf(SkydiveDatasourceQueryCtrl).call(this, $scope, $injector));
           _this.scope = $scope;
-          _this.uiSegmentSrv = uiSegmentSrv;
+          _this.uiSegmentSrv = uiSegmentSrv; // set visibility of some field depending on the type of metrics returned
 
-          // set visibility of some field depending on the type of metrics returned
           _this.metricType = 'interface';
-
           _this.target.metricField = _this.target.metricField || "Bytes";
-
           _this.metricFields = [];
           _this.metricTypeFields = {
             "interface": ['Bytes', 'Packets', 'Collisions', 'Multicast', 'RxBytes', 'RxCompressed', 'RxCrcErrors', 'RxDropped', 'RxErrors', 'RxFifoErrors', 'RxFrameErrors', 'RxLengthErrors', 'RxMissedErrors', 'RxOverErrors', 'RxPackets', 'TxAbortedErrors', 'TxBytes', 'TxCarrierErrors', 'TxCompressed', 'TxDropped', 'TxErrors', 'TxFifoErrors', 'TxHeartbeatErrors', 'TxPackets', 'TxWindowErrors'],
             "flow": ['Bytes', 'Packets', 'ABPackets', 'ABBytes', 'BAPackets', 'BABytes']
           };
-
-          _this.dedupFlow = [{ text: "---", value: "---" }, { text: "LayersPath", value: "LayersPath" }, { text: "Application", value: "Application" }, { text: "TrackingID", value: "TrackingID" }, { text: "ParentUUID", value: "ParentUUID" }, { text: "NodeTID", value: "NodeTID" }, { text: "ANodeTID", value: "ANodeTID" }, { text: "BNodeTID", value: "BNodeTID" }];
-
-          _this.dedupIntf = [{ text: "---", value: "---" }, { text: "ID", value: "ID" }, { text: "TID", value: "TID" }, { text: "Type", value: "Type" }];
-
+          _this.dedupFlow = [{
+            text: "---",
+            value: "---"
+          }, {
+            text: "LayersPath",
+            value: "LayersPath"
+          }, {
+            text: "Application",
+            value: "Application"
+          }, {
+            text: "TrackingID",
+            value: "TrackingID"
+          }, {
+            text: "ParentUUID",
+            value: "ParentUUID"
+          }, {
+            text: "NodeTID",
+            value: "NodeTID"
+          }, {
+            text: "ANodeTID",
+            value: "ANodeTID"
+          }, {
+            text: "BNodeTID",
+            value: "BNodeTID"
+          }];
+          _this.dedupIntf = [{
+            text: "---",
+            value: "---"
+          }, {
+            text: "ID",
+            value: "ID"
+          }, {
+            text: "TID",
+            value: "TID"
+          }, {
+            text: "Type",
+            value: "Type"
+          }];
           _this.target.dedup = _this.target.dedup || "---";
           _this.dedup = _this.dedupFlow;
-
           _this.target.aggregates = _this.target.aggregates || false;
-
           _this.target.mode = _this.target.mode || "All";
-          _this.mode = [{ text: "All", value: "All" }, { text: "Outer only", value: "Outer" }, { text: "Inner only", value: "Inner" }];
-
+          _this.mode = [{
+            text: "All",
+            value: "All"
+          }, {
+            text: "Outer only",
+            value: "Outer"
+          }, {
+            text: "Inner only",
+            value: "Inner"
+          }];
           _this.prevWorked = false;
           _this.prevTitle = "";
           _this.prevGremlin = "";
@@ -102,39 +111,34 @@ System.register(['app/plugins/sdk', './css/query-editor.css!'], function (_expor
           _this.prevMode = _this.mode;
 
           _this.onChangeInternal();
+
           return _this;
         }
 
         _createClass(SkydiveDatasourceQueryCtrl, [{
-          key: 'getCollapsedText',
+          key: "getCollapsedText",
           value: function getCollapsedText() {
             return this.target.gremlin;
           }
         }, {
-          key: 'onChangeInternal',
+          key: "onChangeInternal",
           value: function onChangeInternal() {
             var _this2 = this;
 
             var range = this.panelCtrl.range;
-
             var query = this.datasource.targetToQuery(this.target, 1, 2);
 
             if (!this.prevWorked || this.prevGremlin !== query.gremlin || this.prevMetricField != this.target.metricField || this.prevAggregates != this.target.aggregates || this.prevMode != this.target.mode || this.prevTitle != this.target.title) {
+              this.prevWorked = false; // flow metrics ?
 
-              this.prevWorked = false;
-
-              // flow metrics ?
               var metricType = this.metricType;
-
               var target = {
                 gremlin: this.target.gremlin
               };
-
               var q = this.datasource.targetToQuery(target, range.from.format('X'), range.to.format('X'));
               this.datasource.doGremlinQuery(q.gremlin).then(function (result) {
                 if (result.status === 200 && result.data.length > 0) {
                   _this2.prevWorked = true;
-
                   _this2.metricFields = [];
                   _this2.prevMetricField = _this2.target.metricField;
 
@@ -152,6 +156,7 @@ System.register(['app/plugins/sdk', './css/query-editor.css!'], function (_expor
 
                       return false;
                     });
+
                     return false;
                   });
                 }
@@ -164,14 +169,17 @@ System.register(['app/plugins/sdk', './css/query-editor.css!'], function (_expor
                   for (var _iterator = _this2.metricTypeFields[metricType][Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
                     var k = _step.value;
 
-                    _this2.metricFields.push({ text: k, value: k });
+                    _this2.metricFields.push({
+                      text: k,
+                      value: k
+                    });
                   }
                 } catch (err) {
                   _didIteratorError = true;
                   _iteratorError = err;
                 } finally {
                   try {
-                    if (!_iteratorNormalCompletion && _iterator.return) {
+                    if (!_iteratorNormalCompletion && _iterator.return != null) {
                       _iterator.return();
                     }
                   } finally {
@@ -186,10 +194,10 @@ System.register(['app/plugins/sdk', './css/query-editor.css!'], function (_expor
                 } else {
                   _this2.dedup = _this2.dedupIntf;
                 }
-                if (_this2.metricType != metricType) {
-                  _this2.metricType = metricType;
 
-                  // reset the metricField as we changed of type of metrics
+                if (_this2.metricType != metricType) {
+                  _this2.metricType = metricType; // reset the metricField as we changed of type of metrics
+
                   _this2.target.metricField = "Bytes";
                 }
 
@@ -208,8 +216,6 @@ System.register(['app/plugins/sdk', './css/query-editor.css!'], function (_expor
 
         return SkydiveDatasourceQueryCtrl;
       }(QueryCtrl));
-
-      _export('SkydiveDatasourceQueryCtrl', SkydiveDatasourceQueryCtrl);
 
       SkydiveDatasourceQueryCtrl.templateUrl = 'partials/query.editor.html';
     }
