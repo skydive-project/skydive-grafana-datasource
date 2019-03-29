@@ -6,6 +6,14 @@ Skydive Datasource for Grafana 3.x.
 
 ## Installation
 
+### Docker
+
+```console
+docker run -d --name=grafana -p 3000:3000 skydive/skydive-grafana-datasource
+```
+
+### Sources
+
 ```console
 $ git clone https://github.com/skydive-project/skydive-grafana-datasource.git
 $ cd skydive-grafana-datasource
