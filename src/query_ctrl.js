@@ -1,4 +1,4 @@
-import {QueryCtrl} from 'app/plugins/sdk';
+import { QueryCtrl } from 'app/plugins/sdk';
 import './css/query-editor.css!'
 
 export class SkydiveDatasourceQueryCtrl extends QueryCtrl {
@@ -55,21 +55,20 @@ export class SkydiveDatasourceQueryCtrl extends QueryCtrl {
     };
 
     this.dedupFlow = [
-      {text: "---", value: "---"},
-      {text: "LayersPath", value: "LayersPath"},
-      {text: "Application", value: "Application"},
-      {text: "TrackingID", value: "TrackingID"},
-      {text: "ParentUUID", value: "ParentUUID"},
-      {text: "NodeTID", value: "NodeTID"},
-      {text: "ANodeTID", value: "ANodeTID"},
-      {text: "BNodeTID", value: "BNodeTID"}
+      { text: "---", value: "---" },
+      { text: "LayersPath", value: "LayersPath" },
+      { text: "Application", value: "Application" },
+      { text: "TrackingID", value: "TrackingID" },
+      { text: "ParentUUID", value: "ParentUUID" },
+      { text: "L3TrackingID", value: "L3TrackingID" },
+      { text: "NodeTID", value: "NodeTID" }
     ];
 
     this.dedupIntf = [
-      {text: "---", value: "---"},
-      {text: "ID", value: "ID"},
-      {text: "TID", value: "TID"},
-      {text: "Type", value: "Type"}
+      { text: "---", value: "---" },
+      { text: "ID", value: "ID" },
+      { text: "TID", value: "TID" },
+      { text: "Type", value: "Type" }
     ];
 
     this.target.dedup = this.target.dedup || "---";
@@ -79,9 +78,9 @@ export class SkydiveDatasourceQueryCtrl extends QueryCtrl {
 
     this.target.mode = this.target.mode || "All";
     this.mode = [
-      {text: "All", value: "All"},
-      {text: "Outer only", value: "Outer"},
-      {text: "Inner only", value: "Inner"}
+      { text: "All", value: "All" },
+      { text: "Outer only", value: "Outer" },
+      { text: "Inner only", value: "Inner" }
     ];
 
     this.prevWorked = false;
@@ -105,8 +104,8 @@ export class SkydiveDatasourceQueryCtrl extends QueryCtrl {
     var query = this.datasource.targetToQuery(this.target, 1, 2);
 
     if (!this.prevWorked || this.prevGremlin !== query.gremlin || this.prevMetricField != this.target.metricField ||
-        this.prevAggregates != this.target.aggregates || this.prevMode != this.target.mode ||
-        this.prevTitle != this.target.title) {
+      this.prevAggregates != this.target.aggregates || this.prevMode != this.target.mode ||
+      this.prevTitle != this.target.title) {
 
       this.prevWorked = false;
 
@@ -144,7 +143,7 @@ export class SkydiveDatasourceQueryCtrl extends QueryCtrl {
         }
 
         for (let k of this.metricTypeFields[metricType]) {
-          this.metricFields.push({text: k, value: k});
+          this.metricFields.push({ text: k, value: k });
         }
 
         if (metricType === "flow") {

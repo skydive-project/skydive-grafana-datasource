@@ -5,7 +5,7 @@ export class SkydiveDatasource {
 
   /** @ngInject **/
   constructor(instanceSettings, $q, backendSrv, templateSrv) {
-    console.log( instanceSettings);
+    console.log(instanceSettings);
     this.type = instanceSettings.type;
     this.url = instanceSettings.url;
     this.name = instanceSettings.name;
@@ -22,15 +22,15 @@ export class SkydiveDatasource {
     });
 
     if (targets.length <= 0) {
-      return this.q.when({data: []});
+      return this.q.when({ data: [] });
     }
 
     var queries = _.map(targets, target => {
       return this.targetToQuery(target, options.range.from.format('X'), options.range.to.format('X'));
     });
 
-    var promises =  this.doQueries(queries);
-    return this.q.all(promises).then(function(results) {
+    var promises = this.doQueries(queries);
+    return this.q.all(promises).then(function (results) {
       return { data: _.flatten(results) };
     });
   }
@@ -57,9 +57,9 @@ export class SkydiveDatasource {
   gremlinTimeContext(gremlin, request) {
     if (this.version == "0.9") {
       gremlin = gremlin.replace(/^G\./i, 'G.At(' + request.to + ').');
-      gremlin = gremlin.replace(/\.Flows\([^)]*\)/i, '.Flows(Since(' + (request.to-request.from) + '))');
+      gremlin = gremlin.replace(/\.Flows\([^)]*\)/i, '.Flows(Since(' + (request.to - request.from) + '))');
     } else {
-      gremlin = gremlin.replace(/^G\./i, 'G.At(' + request.to + ',' + (request.to-request.from) + ').');
+      gremlin = gremlin.replace(/^G\./i, 'G.At(' + request.to + ',' + (request.to - request.from) + ').');
     }
 
     return gremlin;
@@ -95,7 +95,7 @@ export class SkydiveDatasource {
       gremlin += '.Aggregates()';
     }
 
-    return {gremlin: gremlin, request: request};
+    return { gremlin: gremlin, request: request };
   }
 
   doQueries(queries) {
@@ -164,8 +164,8 @@ export class SkydiveDatasource {
     var options = {
       url: this.url + '/api/topology',
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      data: {'GremlinQuery': gremlin}
+      headers: { 'Content-Type': 'application/json' },
+      data: { 'GremlinQuery': gremlin }
     };
     return this.backendSrv.datasourceRequest(options);
   }

@@ -1,8 +1,8 @@
-import {SkydiveDatasource} from './datasource';
-import {SkydiveConfigCtrl} from './config_ctrl';
-import {SkydiveDatasourceQueryCtrl} from './query_ctrl';
+import { SkydiveDatasource } from './datasource';
+import { SkydiveConfigCtrl } from './config_ctrl';
+import { SkydiveDatasourceQueryCtrl } from './query_ctrl';
 
-class SkydiveQueryOptionsCtrl {}
+class SkydiveQueryOptionsCtrl { }
 SkydiveQueryOptionsCtrl.templateUrl = 'partials/query.options.html';
 
 export {
