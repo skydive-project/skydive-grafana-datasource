@@ -1,5 +1,6 @@
 import _ from "lodash";
 import moment from "moment";
+import { SemverCmp } from "./semver";
 
 export class SkydiveDatasource {
 
@@ -55,7 +56,7 @@ export class SkydiveDatasource {
   }
 
   gremlinTimeContext(gremlin, request) {
-    if (this.version == "0.9") {
+    if (SemverCmp(this.version, "0.9") == 0) {
       gremlin = gremlin.replace(/^G\./i, 'G.At(' + request.to + ').');
       gremlin = gremlin.replace(/\.Flows\([^)]*\)/i, '.Flows(Since(' + (request.to - request.from) + '))');
     } else {
@@ -143,7 +144,7 @@ export class SkydiveDatasource {
           var start = metric.Start;
           var last = metric.Last;
 
-          if (this.version != "0.9") {
+          if (SemverCmp(this.version, "0.9") > 0) {
             start /= 1000;
             last /= 1000;
           }
@@ -157,6 +158,8 @@ export class SkydiveDatasource {
       });
 
       return data;
+    }).catch(err => {
+      throw { message: err.data };
     });
   }
 
@@ -173,13 +176,31 @@ export class SkydiveDatasource {
   // Required
   // Used for testing datasource in datasource configuration pange
   testDatasource() {
-    return this.backendSrv.datasourceRequest({
+    var request = {
       url: this.url + '/api',
       method: 'GET'
-    }).then(response => {
+    };
+
+    if (SemverCmp(this.version, "0.9") > 0) {
+      request = {
+        url: this.url + '/api/topology',
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        data: { 'GremlinQuery': "G.At('-1s').V().Limit(1)" }
+      };
+    }
+
+    return this.backendSrv.datasourceRequest(request).then(response => {
       if (response.status === 200) {
         return { status: "success", message: "Data source is working", title: "Success" };
       }
+    }).catch(err => {
+      var msg = err.status + " - " + err.statusText;
+      if (err.data.length > 0) {
+        msg += " : " + err.data;
+      }
+
+      throw { message: msg };
     });
   }
 }

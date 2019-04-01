@@ -1,4 +1,5 @@
 import { QueryCtrl } from 'app/plugins/sdk';
+import appEvents from 'app/core/app_events';
 import './css/query-editor.css!'
 
 export class SkydiveDatasourceQueryCtrl extends QueryCtrl {
@@ -166,6 +167,13 @@ export class SkydiveDatasourceQueryCtrl extends QueryCtrl {
         this.prevMode = this.target.mode;
 
         this.panelCtrl.refresh();
+      }).catch(err => {
+        var msg = err.status + " - " + err.statusText;
+        if (err.data.length > 0) {
+          msg += " : " + err.data;
+        }
+
+        appEvents.emit('alert-error', ['Error', msg]);
       });
     }
   }

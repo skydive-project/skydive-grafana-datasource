@@ -1,9 +1,9 @@
 "use strict";
 
-System.register(["app/plugins/sdk", "./css/query-editor.css!"], function (_export, _context) {
+System.register(["app/plugins/sdk", "app/core/app_events", "./css/query-editor.css!"], function (_export, _context) {
   "use strict";
 
-  var QueryCtrl, SkydiveDatasourceQueryCtrl;
+  var QueryCtrl, appEvents, SkydiveDatasourceQueryCtrl;
 
   function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
@@ -26,6 +26,8 @@ System.register(["app/plugins/sdk", "./css/query-editor.css!"], function (_expor
   return {
     setters: [function (_appPluginsSdk) {
       QueryCtrl = _appPluginsSdk.QueryCtrl;
+    }, function (_appCoreApp_events) {
+      appEvents = _appCoreApp_events.default;
     }, function (_cssQueryEditorCss) {}],
     execute: function () {
       _export("SkydiveDatasourceQueryCtrl", SkydiveDatasourceQueryCtrl =
@@ -66,14 +68,11 @@ System.register(["app/plugins/sdk", "./css/query-editor.css!"], function (_expor
             text: "ParentUUID",
             value: "ParentUUID"
           }, {
+            text: "L3TrackingID",
+            value: "L3TrackingID"
+          }, {
             text: "NodeTID",
             value: "NodeTID"
-          }, {
-            text: "ANodeTID",
-            value: "ANodeTID"
-          }, {
-            text: "BNodeTID",
-            value: "BNodeTID"
           }];
           _this.dedupIntf = [{
             text: "---",
@@ -209,6 +208,14 @@ System.register(["app/plugins/sdk", "./css/query-editor.css!"], function (_expor
                 _this2.prevMode = _this2.target.mode;
 
                 _this2.panelCtrl.refresh();
+              }).catch(function (err) {
+                var msg = err.status + " - " + err.statusText;
+
+                if (err.data.length > 0) {
+                  msg += " : " + err.data;
+                }
+
+                appEvents.emit('alert-error', ['Error', msg]);
               });
             }
           }

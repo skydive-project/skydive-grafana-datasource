@@ -1,5 +1,5 @@
 import prunk from 'prunk';
-import {JSDOM} from 'jsdom';
+import { JSDOM } from 'jsdom';
 import chai from 'chai';
 
 // Mock Grafana modules that are not available outside of the core project
@@ -8,6 +8,7 @@ prunk.mock('./css/query-editor.css!', 'no css, dude.');
 prunk.mock('app/plugins/sdk', {
     QueryCtrl: null
 });
+prunk.mock('app/core/app_events', {});
 
 // Setup jsdom
 // Required for loading angularjs

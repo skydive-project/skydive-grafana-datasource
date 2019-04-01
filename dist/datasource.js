@@ -1,9 +1,9 @@
 "use strict";
 
-System.register(["lodash", "moment"], function (_export, _context) {
+System.register(["lodash", "moment", "./semver"], function (_export, _context) {
   "use strict";
 
-  var _, moment, SkydiveDatasource;
+  var _, moment, SemverCmp, SkydiveDatasource;
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -16,6 +16,8 @@ System.register(["lodash", "moment"], function (_export, _context) {
       _ = _lodash.default;
     }, function (_moment) {
       moment = _moment.default;
+    }, function (_semver) {
+      SemverCmp = _semver.SemverCmp;
     }],
     execute: function () {
       _export("SkydiveDatasource", SkydiveDatasource =
@@ -86,7 +88,7 @@ System.register(["lodash", "moment"], function (_export, _context) {
         }, {
           key: "gremlinTimeContext",
           value: function gremlinTimeContext(gremlin, request) {
-            if (this.version == "0.9") {
+            if (SemverCmp(this.version, "0.9") == 0) {
               gremlin = gremlin.replace(/^G\./i, 'G.At(' + request.to + ').');
               gremlin = gremlin.replace(/\.Flows\([^)]*\)/i, '.Flows(Since(' + (request.to - request.from) + '))');
             } else {
@@ -190,7 +192,7 @@ System.register(["lodash", "moment"], function (_export, _context) {
                   var start = metric.Start;
                   var last = metric.Last;
 
-                  if (_this3.version != "0.9") {
+                  if (SemverCmp(_this3.version, "0.9") > 0) {
                     start /= 1000;
                     last /= 1000;
                   }
@@ -205,6 +207,10 @@ System.register(["lodash", "moment"], function (_export, _context) {
               });
 
               return data;
+            }).catch(function (err) {
+              throw {
+                message: err.data
+              };
             });
           }
         }, {
@@ -227,10 +233,25 @@ System.register(["lodash", "moment"], function (_export, _context) {
         }, {
           key: "testDatasource",
           value: function testDatasource() {
-            return this.backendSrv.datasourceRequest({
+            var request = {
               url: this.url + '/api',
               method: 'GET'
-            }).then(function (response) {
+            };
+
+            if (SemverCmp(this.version, "0.9") > 0) {
+              request = {
+                url: this.url + '/api/topology',
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                data: {
+                  'GremlinQuery': "G.At('-1s').V().Limit(1)"
+                }
+              };
+            }
+
+            return this.backendSrv.datasourceRequest(request).then(function (response) {
               if (response.status === 200) {
                 return {
                   status: "success",
@@ -238,6 +259,16 @@ System.register(["lodash", "moment"], function (_export, _context) {
                   title: "Success"
                 };
               }
+            }).catch(function (err) {
+              var msg = err.status + " - " + err.statusText;
+
+              if (err.data.length > 0) {
+                msg += " : " + err.data;
+              }
+
+              throw {
+                message: msg
+              };
             });
           }
         }]);
