@@ -2,7 +2,7 @@
 
 # Skydive Grafana Datasource
 
-Skydive Datasource for Grafana 3.x.
+Skydive Datasource for Grafana >= 3.x.
 
 ## Installation
 
@@ -32,6 +32,8 @@ http://localhost:8082
 
 If using Authentication, just use the `Basic Auth` and provide User/Password of
 Skydive Analyzer.
+
+In case of Docker deployment make sure that Skydive API is reachable.
 
 ## Query editor
 

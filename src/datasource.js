@@ -1,12 +1,11 @@
 import _ from "lodash";
-import moment from "moment";
 import { SemverCmp } from "./semver";
+import { Metrics, Version } from './metrics';
 
 export class SkydiveDatasource {
 
   /** @ngInject **/
   constructor(instanceSettings, $q, backendSrv, templateSrv) {
-    console.log(instanceSettings);
     this.type = instanceSettings.type;
     this.url = instanceSettings.url;
     this.name = instanceSettings.name;
@@ -14,6 +13,8 @@ export class SkydiveDatasource {
     this.q = $q;
     this.backendSrv = backendSrv;
     this.templateSrv = templateSrv;
+
+    Version(this.version);
   }
 
   // Called once per panel (graph)
@@ -26,155 +27,107 @@ export class SkydiveDatasource {
       return this.q.when({ data: [] });
     }
 
-    var queries = _.map(targets, target => {
-      return this.targetToQuery(target, options.range.from.format('X'), options.range.to.format('X'));
+    var requests = _.map(targets, target => {
+      return this.targetToRequest(target, options.range.from.format('X'), options.range.to.format('X'));
     });
 
-    var promises = this.doQueries(queries);
+    var promises = this.sendRequests(requests);
     return this.q.all(promises).then(function (results) {
       return { data: _.flatten(results) };
     });
   }
 
   targetToRequest(target, from, to) {
+    var gremlin = this.setTimeContext(target.gremlin, from, to);
+
+    var path = target.metricField.split(".");
+    var type = path[0];
+    var subType = path[1];
+    var field = path[2];
+
+    var field = Metrics[type][subType].Fields[field];
+
+    var suffix = field.Suffix.replace(/%from/i, from * 1000);
+    suffix = suffix.replace(/%to/i, to * 1000);
+    gremlin += "." + suffix;
+
     return {
-      title: target.title || "",
-      gremlin: target.gremlin || "",
-      field: target.metricField,
-      dedup: target.dedup,
-      aggregates: target.aggregates,
-      mode: target.mode,
-      from: from,
-      to: to,
-      refId: target.refId,
-      hide: target.hide
+      "target": target,
+      "gremlin": gremlin,
+      "field": field,
     };
   }
 
-  targetToQuery(target, from, to) {
-    return this.requestToQuery(this.targetToRequest(target, from, to));
-  }
-
-  gremlinTimeContext(gremlin, request) {
-    if (SemverCmp(this.version, "0.9") == 0) {
-      gremlin = gremlin.replace(/^G\./i, 'G.At(' + request.to + ').');
-      gremlin = gremlin.replace(/\.Flows\([^)]*\)/i, '.Flows(Since(' + (request.to - request.from) + '))');
-    } else {
-      gremlin = gremlin.replace(/^G\./i, 'G.At(' + request.to + ',' + (request.to - request.from) + ').');
-    }
-
-    return gremlin;
-  }
-
-  requestToQuery(request) {
+  setTimeContext(gremlin, from, to) {
     // removing Context/At and Metric from the original query if present
-    var gremlin = request.gremlin.replace(/^G\.At\([^)]*\)/i, 'G');
-    gremlin = request.gremlin.replace(/^G\.Context\([^)]*\)/i, 'G');
+    gremlin = gremlin.replace(/^G\.At\([^)]*\)/i, 'G');
+    gremlin = gremlin.replace(/^G\.Context\([^)]*\)/i, 'G');
     gremlin = gremlin.replace(/\.Metrics\([^)]*\)/i, '');
     gremlin = gremlin.replace(/\.Aggregates\([^)]*\)/i, '');
     gremlin = gremlin.replace(/\.Dedup\([^)]*\)/i, '');
 
     // add time context
-    gremlin = this.gremlinTimeContext(gremlin, request);
-
-    switch (request.mode) {
-      case "Outer":
-        gremlin += '.Has("ParentUUID", "")';
-        break;
-      case "Inner":
-        gremlin += '.Has("ParentUUID", Ne(""))';
-        break;
+    if (SemverCmp(this.version, "0.9") == 0) {
+      gremlin = gremlin.replace(/^G\./i, 'G.At(' + to + ').');
+      gremlin = gremlin.replace(/\.Flows\([^)]*\)/i, '.Flows(Since(' + (to - from) + '))');
+    } else {
+      gremlin = gremlin.replace(/^G\./i, 'G.At(' + to + ',' + (to - from) + ').');
     }
 
-    if (request.dedup && request.dedup != '---') {
-      gremlin += '.Dedup("' + request.dedup + '")';
-    }
-
-    gremlin += '.Metrics()';
-
-    if (request.aggregates) {
-      gremlin += '.Aggregates()';
-    }
-
-    return { gremlin: gremlin, request: request };
+    return gremlin;
   }
 
-  doQueries(queries) {
-    return _.map(queries, query => {
-      return this.doQuery(query);
+  getKeys(gremlin, from, to) {
+    gremlin = this.setTimeContext(gremlin, from, to);
+    return this.sendRawGremlinQuery(gremlin + ".Limit(10).Keys()");
+  }
+
+  sendRequests(requests) {
+    return _.map(requests, request => {
+      return this.sendRequest(request);
     });
   }
 
-  doQuery(query) {
-    console.log(query.gremlin);
+  sendRequest(request) {
+    console.log(request.gremlin);
 
-    return this.doGremlinQuery(query.gremlin).then(result => {
-      var data = [];
-      if (result.status !== 200) {
-        return data;
+    return this.sendRawGremlinQuery(request.gremlin).then(resp => {
+      if (resp.status !== 200) {
+        return [];
       }
 
-      if (result.data.length <= 0) {
-        return data;
+      if (resp.data.length <= 0) {
+        return [];
       }
 
-      _.forEach(result.data[0], (metrics, uuid) => {
-        var datapoints = _.map(metrics, metric => {
-          var value = 0;
-          switch (query.request.field) {
-            case "Bytes":
-              // flow or interface metrics ?
-              if (_.has(metric, "ABBytes")) {
-                value = metric.ABBytes + metric.BABytes;
-              } else {
-                value = metric.RxBytes + metric.RxBytes;
-              }
-              break;
-            case "Packets":
-              // flow or interface metrics ?
-              if (_.has(metric, "ABPackets")) {
-                value = metric.ABPackets + metric.BAPackets;
-              } else {
-                value = metric.RxPackets + metric.TxPackets;
-              }
-              break;
-            default:
-              value = metric[query.request.field];
-          }
-          var start = metric.Start;
-          var last = metric.Last;
+      var datapoints =  request.field.PointsFnc(resp.data, request.target.field);
 
-          if (SemverCmp(this.version, "0.9") > 0) {
-            start /= 1000;
-            last /= 1000;
-          }
-          return [value / (last - start), moment(last, 'X').valueOf()];
-        });
-
-        data.push({
-          target: query.request.title || uuid,
-          datapoints: _.toArray(datapoints).reverse()
-        });
-      });
-
-      return data;
+      return [{
+        target: request.target.title || "Metrics",
+        datapoints: _.toArray(datapoints).reverse()
+      }];
     }).catch(err => {
-      throw { message: err.data };
+      if (err.data) {
+        throw { message: err.data };
+      } else {
+        throw { message: err };
+      }
     });
   }
 
-  doGremlinQuery(gremlin) {
-    var options = {
+  // send a raw gremlin query
+  sendRawGremlinQuery(gremlin) {
+    var request = {
       url: this.url + '/api/topology',
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: { 'GremlinQuery': gremlin }
     };
-    return this.backendSrv.datasourceRequest(options);
+    return this.backendSrv.datasourceRequest(request);
   }
 
   // Required
-  // Used for testing datasource in datasource configuration pange
+  // Used for testing datasource in datasource configuration page
   testDatasource() {
     var request = {
       url: this.url + '/api',

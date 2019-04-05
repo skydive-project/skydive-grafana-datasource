@@ -1,6 +1,8 @@
 import { QueryCtrl } from 'app/plugins/sdk';
 import appEvents from 'app/core/app_events';
 import './css/query-editor.css!'
+import { TypeByKeys, Metrics } from './metrics';
+import { SemverCmp } from "./semver";
 
 export class SkydiveDatasourceQueryCtrl extends QueryCtrl {
 
@@ -11,170 +13,113 @@ export class SkydiveDatasourceQueryCtrl extends QueryCtrl {
     this.scope = $scope;
     this.uiSegmentSrv = uiSegmentSrv;
 
-    // set visibility of some field depending on the type of metrics returned
-    this.metricType = 'interface';
-
-    this.target.metricField = this.target.metricField || "Bytes";
-
+    this.metricTypes = [];
     this.metricFields = [];
-    this.metricTypeFields = {
-      "interface": [
-        'Bytes',
-        'Packets',
-        'Collisions',
-        'Multicast',
-        'RxBytes',
-        'RxCompressed',
-        'RxCrcErrors',
-        'RxDropped',
-        'RxErrors',
-        'RxFifoErrors',
-        'RxFrameErrors',
-        'RxLengthErrors',
-        'RxMissedErrors',
-        'RxOverErrors',
-        'RxPackets',
-        'TxAbortedErrors',
-        'TxBytes',
-        'TxCarrierErrors',
-        'TxCompressed',
-        'TxDropped',
-        'TxErrors',
-        'TxFifoErrors',
-        'TxHeartbeatErrors',
-        'TxPackets',
-        'TxWindowErrors'
-      ],
-      "flow": [
-        'Bytes',
-        'Packets',
-        'ABPackets',
-        'ABBytes',
-        'BAPackets',
-        'BABytes'
-      ]
-    };
 
-    this.dedupFlow = [
-      { text: "---", value: "---" },
-      { text: "LayersPath", value: "LayersPath" },
-      { text: "Application", value: "Application" },
-      { text: "TrackingID", value: "TrackingID" },
-      { text: "ParentUUID", value: "ParentUUID" },
-      { text: "L3TrackingID", value: "L3TrackingID" },
-      { text: "NodeTID", value: "NodeTID" }
-    ];
+    this.target.gremlin = this.target.gremlin || "";
+    this.target.metricType = this.target.metricType || 'Interface';
+    this.target.metricField = this.target.metricField || 'Interface.Default.Bytes';
 
-    this.dedupIntf = [
-      { text: "---", value: "---" },
-      { text: "ID", value: "ID" },
-      { text: "TID", value: "TID" },
-      { text: "Type", value: "Type" }
-    ];
+    this.prevGremlin = this.target.gremlin;
 
-    this.target.dedup = this.target.dedup || "---";
-    this.dedup = this.dedupFlow;
-
-    this.target.aggregates = this.target.aggregates || false;
-
-    this.target.mode = this.target.mode || "All";
-    this.mode = [
-      { text: "All", value: "All" },
-      { text: "Outer only", value: "Outer" },
-      { text: "Inner only", value: "Inner" }
-    ];
-
-    this.prevWorked = false;
-    this.prevTitle = "";
-    this.prevGremlin = "";
-    this.prevMetricField = this.metricField;
-    this.prevDedup = this.dedup;
-    this.prevAggregates = this.aggregates;
-    this.prevMode = this.mode;
-
-    this.onChangeInternal();
+    this.updateTypes();
   }
 
   getCollapsedText() {
     return this.target.gremlin;
   }
 
-  onChangeInternal() {
+  updateTypes() {
+    if (this.target.gremlin == "") {
+      return;
+    }
+
     var range = this.panelCtrl.range;
 
-    var query = this.datasource.targetToQuery(this.target, 1, 2);
+    this.datasource.getKeys(this.target.gremlin,
+      range.from.format('X'), range.to.format('X')).then(result => {
 
-    if (!this.prevWorked || this.prevGremlin !== query.gremlin || this.prevMetricField != this.target.metricField ||
-      this.prevAggregates != this.target.aggregates || this.prevMode != this.target.mode ||
-      this.prevTitle != this.target.title) {
+        if (result.status === 200) {
+          if (!result.data || result.data.length == 0) {
+            throw("No data, please check your Gremlin expression")
+          }
 
-      this.prevWorked = false;
+          var type = TypeByKeys(result.data);
 
-      // flow metrics ?
-      var metricType = this.metricType;
+          var metrics = Metrics[type];
+          if (Object.keys(metrics).length == 0) {
+            return this.onError({ message: "Unable to detect type of metric" })
+          }
 
-      var target = {
-        gremlin: this.target.gremlin
-      };
+          this.metricTypes = [];
+          for (let subType in metrics) {
+            if (SemverCmp(this.datasource.version, metrics[subType].MinVer) >= 0) {
+              this.metricTypes.push({ text: metrics[subType].Name, value: type + "." + subType });
+            }
+          }
+          if (this.target.metricType == '') {
+            this.target.metricType = type + ".Default";
+          }
 
-      var q = this.datasource.targetToQuery(target, range.from.format('X'), range.to.format('X'));
-      this.datasource.doGremlinQuery(q.gremlin).then(result => {
-        if (result.status === 200 && result.data.length > 0) {
-          this.prevWorked = true;
+          this.updateMetricFields();
 
-          this.metricFields = [];
-          this.prevMetricField = this.target.metricField;
-
-          _.forEach(result.data[0], (metrics, uuid) => {
-            _.forEach(metrics, metric => {
-              _.forOwn(metric, (value, key) => {
-                if (key === "ABBytes" || key === "BABytes") {
-                  metricType = "flow";
-                  return false;
-                } else if (key === "RxPackets" || key === "TxPackets") {
-                  metricType = "interface";
-                  return false;
-                }
-              });
-
-              return false;
-            });
-            return false;
-          });
+          this.panelCtrl.refresh();
         }
+      }).catch(this.onError.bind(this));
+  }
 
-        for (let k of this.metricTypeFields[metricType]) {
-          this.metricFields.push({ text: k, value: k });
-        }
+  updateMetricFields() {
+    var tm = this.target.metricType.split(".");
 
-        if (metricType === "flow") {
-          this.dedup = this.dedupFlow;
-        } else {
-          this.dedup = this.dedupIntf;
-        }
-        if (this.metricType != metricType) {
-          this.metricType = metricType;
+    var type = tm[0];
+    var subType = tm[1];
 
-          // reset the metricField as we changed of type of metrics
-          this.target.metricField = "Bytes";
-        }
+    this.metricFields = [];
 
-        this.prevTitle = this.target.title;
-        this.prevGremlin = query.gremlin;
-        this.prevMetricField = this.target.metricField;
-        this.prevDedup = this.target.dedup;
-        this.prevAggregates = this.target.aggregates;
-        this.prevMode = this.target.mode;
+    var fields = Metrics[type][subType].Fields;
+    for (let key in fields) {
+      this.metricFields.push({ text: fields[key].Name, value: this.target.metricType + "." + key });
+    }
+    if (this.target.metricField == '') {
+      this.target.metricField = this.target.metricType + "." + Metrics[type][subType].Default;
+    }
+  }
 
-        this.panelCtrl.refresh();
-      }).catch(err => {
-        var msg = err.status + " - " + err.statusText;
-        if (err.data.length > 0) {
-          msg += " : " + err.data;
-        }
+  onMetricTypeChange() {
+    this.target.metricField = '';
+    this.updateMetricFields();
 
-        appEvents.emit('alert-error', ['Error', msg]);
-      });
+    this.panelCtrl.refresh();
+  }
+
+  onMetricFieldChange() {
+    this.panelCtrl.refresh();
+  }
+
+  onGremlinChange() {
+    if (this.target.gremlin == "") {
+      return;
+    }
+
+    if (this.prevGremlin != this.target.gremlin) {
+      this.prevGremlin = this.target.gremlin;
+
+      this.target.metricType = '';
+      this.target.metricField = '';
+
+      this.updateTypes();
+    }
+  }
+
+  onError(err) {
+    if (err.status) {
+      var msg = err.status + " - " + err.statusText;
+      if (err.data && err.data.length > 0) {
+        msg += " : " + err.data;
+      }
+      appEvents.emit('alert-error', ['Error', msg]);
+    } else {
+      appEvents.emit('alert-error', ['Error', err]);
     }
   }
 }

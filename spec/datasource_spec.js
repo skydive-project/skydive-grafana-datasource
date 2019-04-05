@@ -23,7 +23,7 @@ describe('SkydiveDatasource', function () {
 
     it('should return the server results when a target is set', function (done) {
         ctx.backendSrv.datasourceRequest = function (request) {
-            expect(request.data).to.eql({ "GremlinQuery": 'G.At(1,1).Flows().Has("ParentUUID", "").Dedup("NodeTID").Metrics()' });
+            expect(request.data).to.eql({ "GremlinQuery": "G.At(1,1).V().HasKey('Metric').Metrics().Aggregates()" });
 
             return ctx.$q.when({
                 status: 200,
@@ -45,11 +45,8 @@ describe('SkydiveDatasource', function () {
         };
 
         var targets = [{
-            "dedup": "NodeTID",
-            "metricField": "Bytes",
-            "gremlin": "G.Flows()",
-            "aggregates": false,
-            "mode": "Outer",
+            "metricField": "Interface.Default.Bytes",
+            "gremlin": "G.V()",
         }];
 
         var from = moment(0, 'X');
