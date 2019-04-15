@@ -45,15 +45,17 @@ var metricFnc = (res, field1, field2) => {
 var rttFnc = (res, field) => {
   var points = [];
 
-  _.forEach(res, (entry) => {
-    var value = 0;
-    if (field in entry) {
-      value = entry[field];
-    }
+  _.forEach(res[0], (entries) => {
+    _.forEach(entries, (entry) => {
+      var value = 0;
+      if (field in entry) {
+        value = entry[field];
+      }
 
-    var start = entry.Start / 1000;
+      var start = entry.Start / 1000;
 
-    points.push([value, moment(start, 'X').valueOf()]);
+      points.push([value, moment(start, 'X').valueOf()]);
+    });
   });
 
   return points;
@@ -71,7 +73,19 @@ Metrics["Flow"] = {
       "ABBytes": { Name: "ABBytes", Suffix: "Metrics().Aggregates()", PointsFnc: (res) => { return metricFnc(res, "ABBytes") } },
       "BAPackets": { Name: "BAPackets", Suffix: "Metrics().Aggregates()", PointsFnc: (res) => { return metricFnc(res, "ABBytes") } },
       "BABytes": { Name: "BABytes", Suffix: "Metrics().Aggregates()", PointsFnc: (res) => { return metricFnc(res, "ABBytes") } },
-      "RTT": { Name: "RTT", Suffix: "Has('Start', GT(%from)).Sort(ASC, 'Start')", PointsFnc: (res) => { return rttFnc(res, "RTT") } },
+      "RTT": { Name: "RTT", Suffix: "Metrics()", PointsFnc: (res) => { return rttFnc(res, "RTT") } },
+    }
+  }
+}
+
+Metrics["OpenFlow"] = {
+  "Default": {
+    "Name": "OpenFlow",
+    "Default": "RxBytes",
+    "MinVer": "0.23",
+    "Fields": {
+      "RxPackets": { Name: "Packets", Suffix: "Has('Type', 'ofrule').Metrics().Aggregates()", PointsFnc: (res) => { return metricFnc(res, "RxPackets") } },
+      "RxBytes": { Name: "Bytes", Suffix: "Has('Type', 'ofrule').Metrics().Aggregates()", PointsFnc: (res) => { return metricFnc(res, "RxBytes") } },
     }
   }
 }
@@ -110,7 +124,7 @@ Metrics["Interface"] = {
   "OpenvSwitch": {
     "Name": "OpenvSwitch",
     "Default": "Bytes",
-    "MinVer": "0.22",
+    "MinVer": "0.23",
     "Fields": {
       "Packets": { Name: "Packets", Suffix: "HasKey('Ovs.Metric').Metrics('Ovs').Aggregates()", PointsFnc: (res) => { return metricFnc(res, "RxPackets", "TxPackets") } },
       "Bytes": { Name: "Bytes", Suffix: "Metrics('Ovs').Aggregates()", PointsFnc: (res) => { return metricFnc(res, "RxBytes", "res.TxBytes") } },
@@ -131,7 +145,7 @@ Metrics["Interface"] = {
   "sFlow": {
     "Name": "sFlow",
     "Default": "IfInOctets",
-    "MinVer": "0.22",
+    "MinVer": "0.23",
     "Fields": {
       "IfInOctets": { Name: "IfInOctets", Suffix: "HasKey('SFlow').Metrics('SFlow').Aggregates()", PointsFnc: (res) => { return metricFnc(res, "IfInOctets") } },
       "IfInUcastPkts": { Name: "IfInUcastPkts", Suffix: "HasKey('SFlow').Metrics('SFlow').Aggregates()", PointsFnc: (res) => { return metricFnc(res, "IfInUcastPkts") } },
@@ -163,6 +177,19 @@ Metrics["Interface"] = {
       "VlanMulticastPkts": { Name: "VlanMulticastPkts", Suffix: "HasKey('SFlow').Metrics('SFlow').Aggregates()", PointsFnc: (res) => { return metricFnc(res, "VlanMulticastPkts") } },
       "VlanBroadcastPkts": { Name: "VlanBroadcastPkts", Suffix: "HasKey('SFlow').Metrics('SFlow').Aggregates()", PointsFnc: (res) => { return metricFnc(res, "VlanBroadcastPkts") } },
       "VlanDiscards": { Name: "VlanDiscards", Suffix: "HasKey('SFlow').Metrics('SFlow').Aggregates()", PointsFnc: (res) => { return metricFnc(res, "VlanDiscards") } },
+      "EthAlignmentErrors": { Name: "EthAlignmentErrors", Suffix: "HasKey('SFlow').Metrics('SFlow').Aggregates()", PointsFnc: (res) => { return metricFnc(res, "EthAlignmentErrors") } },
+      "EthFCSErrors": { Name: "EthFCSErrors", Suffix: "HasKey('SFlow').Metrics('SFlow').Aggregates()", PointsFnc: (res) => { return metricFnc(res, "EthFCSErrors") } },
+      "EthSingleCollisionFrames": { Name: "EthSingleCollisionFrames", Suffix: "HasKey('SFlow').Metrics('SFlow').Aggregates()", PointsFnc: (res) => { return metricFnc(res, "EthSingleCollisionFrames") } },
+      "EthMultipleCollisionFrames": { Name: "EthMultipleCollisionFrames", Suffix: "HasKey('SFlow').Metrics('SFlow').Aggregates()", PointsFnc: (res) => { return metricFnc(res, "EthMultipleCollisionFrames") } },
+      "EthSQETestErrors": { Name: "EthSQETestErrors", Suffix: "HasKey('SFlow').Metrics('SFlow').Aggregates()", PointsFnc: (res) => { return metricFnc(res, "EthSQETestErrors") } },
+      "EthDeferredTransmissions": { Name: "EthDeferredTransmissions", Suffix: "HasKey('SFlow').Metrics('SFlow').Aggregates()", PointsFnc: (res) => { return metricFnc(res, "EthDeferredTransmissions") } },
+      "EthLateCollisions": { Name: "EthLateCollisions", Suffix: "HasKey('SFlow').Metrics('SFlow').Aggregates()", PointsFnc: (res) => { return metricFnc(res, "EthLateCollisions") } },
+      "EthExcessiveCollisions": { Name: "EthExcessiveCollisions", Suffix: "HasKey('SFlow').Metrics('SFlow').Aggregates()", PointsFnc: (res) => { return metricFnc(res, "EthExcessiveCollisions") } },
+      "EthInternalMacReceiveErrors": { Name: "EthInternalMacReceiveErrors", Suffix: "HasKey('SFlow').Metrics('SFlow').Aggregates()", PointsFnc: (res) => { return metricFnc(res, "EthInternalMacReceiveErrors") } },
+      "EthInternalMacTransmitErrors": { Name: "EthInternalMacTransmitErrors", Suffix: "HasKey('SFlow').Metrics('SFlow').Aggregates()", PointsFnc: (res) => { return metricFnc(res, "EthInternalMacTransmitErrors") } },
+      "EthCarrierSenseErrors": { Name: "EthCarrierSenseErrors", Suffix: "HasKey('SFlow').Metrics('SFlow').Aggregates()", PointsFnc: (res) => { return metricFnc(res, "EthCarrierSenseErrors") } },
+      "EthFrameTooLongs": { Name: "EthFrameTooLongs", Suffix: "HasKey('SFlow').Metrics('SFlow').Aggregates()", PointsFnc: (res) => { return metricFnc(res, "EthFrameTooLongs") } },
+      "EthSymbolErrors": { Name: "EthSymbolErrors", Suffix: "HasKey('SFlow').Metrics('SFlow').Aggregates()", PointsFnc: (res) => { return metricFnc(res, "EthSymbolErrors") } },
     }
   }
 }
@@ -172,6 +199,8 @@ export function TypeByKeys(keys) {
     return "Interface";
   } else if (keys.indexOf("TrackingID") >= 0) {
     return "Flow";
+  } else if (keys.indexOf("Filters") >= 0 && keys.indexOf("Actions")) {
+    return "OpenFlow";
   }
 
   return {}
