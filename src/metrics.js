@@ -58,7 +58,7 @@ var rttFnc = (res, field) => {
     });
   });
 
-  return points;
+  return _.sortBy(points, [function (v) { return v[1]; }]);
 }
 
 Metrics["Flow"] = {
