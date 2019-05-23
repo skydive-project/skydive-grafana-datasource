@@ -47,7 +47,7 @@ G.V().Has('Name', 'br-int').Flows()
 ```
 
 Refer to the
-[Skydive Gremlin section](http://skydive-project.github.io/skydive/getting-started/gremlin/)
+[Skydive Gremlin section](http://skydive.network/documentation/api-gremlin)
 for further explanations about the syntax and the functions available.
 
 ## Contact

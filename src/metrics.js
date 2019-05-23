@@ -195,12 +195,12 @@ Metrics["Interface"] = {
 }
 
 export function TypeByKeys(keys) {
-  if (keys.indexOf("Driver") >= 0) {
-    return "Interface";
+  if (keys.indexOf("Filters") >= 0 && keys.indexOf("Actions") >= 0) {
+    return "OpenFlow";
   } else if (keys.indexOf("TrackingID") >= 0) {
     return "Flow";
-  } else if (keys.indexOf("Filters") >= 0 && keys.indexOf("Actions")) {
-    return "OpenFlow";
+  } else {
+      return "Interface";
   }
 
   return {}

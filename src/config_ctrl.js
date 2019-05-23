@@ -5,6 +5,7 @@ export class SkydiveConfigCtrl {
     this.scope = $scope;
 
     this.versionFields = [
+      { text: ">= 0.23", value: "0.23" },
       { text: ">= 0.22", value: "0.22" },
       { text: ">= 0.10", value: "0.10" },
       { text: "0.9", value: "0.9" }
